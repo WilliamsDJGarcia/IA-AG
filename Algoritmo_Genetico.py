@@ -5,15 +5,13 @@ import matplotlib.pyplot as plt
 #Generación de genotipos
 def genotipo():
     valor2 = []
-    for i in range(num_individuo):
+    for i in range(poblacion_inicial):
         valor = random.randint(1,59)
         valor2.append(valor)
-    # print(valor2)
     return valor2
 
-#Cruza entre genotipos del mismo valor (A-A)
+#Cruza entre genotipos del mismo valor (A-A) (B-B)
 def cruza(genotipo):
-    # print("GENOTIPO CRUZA ",genotipo)
     hijosA=[]
     hijosB=[]
     aux=[]
@@ -41,14 +39,15 @@ def cruza(genotipo):
         hijosB.append(aux2[i][corte:]+aux2[i+1][:corte])
     # print("hijosB: "+ str(hijosB))
     
-    C = [hijosA]+[hijosB]
+    C = [hijosA]+[aux]+[hijosB]+[aux2]
     return C
 
 #Mutación de un genotipo en base a prob_mut
 def mutacion(genoma):
-    # print("genomas completos ",genoma)
+    originalA = genoma[1]
+    originalB = genoma[3]
     genomaA = genoma[0]
-    genomaB = genoma[1]
+    genomaB = genoma[2]
     A = []
     B = []
 
@@ -56,91 +55,86 @@ def mutacion(genoma):
         for j in range(len(genomaA[i])):
            rd = random.randint(1,100)
            val_bin = genomaA[i][j]
-        #    print("VAL ",val_bin)
-        #    print("VR ",rd)
+
            if rd < prob_mut:
-            #    print("e ",val_bin)
+           
                if genomaA[i][j] == 1:
                    genomaA[i][j] = 0
                else:
                    genomaA[i][j] = 1
            else:
                 genomaA[i][j]
-    #     print("MUTADO_A ",genomaA[i])
-    # print("MUTADOS A ",genomaA)
+
     for i in range(len(genomaB)):
         for j in range(len(genomaB[i])):
            rd = random.randint(1,100)
            val_bin = genomaB[i][j]
-        #    print("VAL ",val_bin)
-        #    print("VR ",rd)
+       
            if rd < prob_mut:
-            #    print("e ",val_bin)
                if genomaB[i][j] == 1:
                    genomaB[i][j] = 0
                else:
                    genomaB[i][j] = 1
            else:
                 genomaB[i][j]
-    #     print("MUTADO_B ",genomaB[i])
-    # print("MUTADOS B ",genomaB)
+
     A = genomaA
     B = genomaB
-    C = [A]+[B]
+    C = [A]+[originalA]+[B]+[originalB]
 
     return C
 
 #Método selección
 def selecciona(A,B):
-
     generacion=[]
     mejores = []
     auxA = []
     auxB = []
-    promedio=[]
+    promedio = []
+    aux = 0
+    
     for i,j in zip(A,B):
         valory = []
         fit = 0
+        pro=0
         individuo_A=i*.10
-        # print("valor decimal ",individuo_A)
-        # print("IA ",individuo_A)
         individuo_B=j*.10
-        # print("valor decimal B ",individuo_B)
-        # print("IB ",individuo_B)    
 
         for x in range(len(valores_x)):
             resultY = cosSin(valores_x[x],individuo_A,individuo_B)
             fit += (math.pow((valores_y[x]-resultY),2))
             valory.append(round(resultY,4))
+            promedio.append(fit)
         fit = fit/len(valores_x)
         generacion.append([fit,i,j,valory])
-        promedio.append(fit)
-    promedio_gen.append(fit)
-    order = sorted(promedio)
-    peor_caso_gen.append(order[-1])
-    mejor.append(order[0])
-    print("ORDER ",order)
     generacion.sort()
+    
+    for x in promedio:
+        pro = pro+x
+    pmd.append(pro/len(promedio))
+    
     for z in generacion:
+        aux = aux+z[0]
+        ultimoValor = z[0]
         if len(mejores)<10:
             mejores.append(z)
+    peor_caso_gen.append(ultimoValor)
+    promedio_gen.append(aux/21)
+
     for l in mejores:
         auxA.append(l[1])
         auxB.append(l[2])
     
     auxC = [auxA]+[auxB]
     mejor_caso_gen.append(mejores[0])
-      
-    # print("PRO ",promedio_gen)
-    # # print("MEJOR ",mejor_caso_gen)
-    # print("PEOR ",peor_caso_gen)
     
+    mejor.append(mejores[0][0])
     return auxC
 
 #Convertidor
-def converBin(value):
-    binary="{0:06b}".format(value)
-    return [int(x) for x in str(binary)]    
+def converBin(num):
+    binario="{0:06b}".format(num)
+    return [int(i) for i in str(binario)]    
 
 #Función para Y
 def cosSin(i,individuo_A,individuo_B):
@@ -174,8 +168,8 @@ if __name__ == '__main__':
     valores_x=[0.0000,0.2500,0.5000,0.75000,1,1.25,1.50,1.75,2,2.25,2.50,2.75,3,3.25,3.50,3.75,4,4.25,4.50,4.75,5]
 
     long_material_gen = 6
-    num_individuo = 20
-    numero_generaciones=400
+    poblacion_inicial = 20
+    numero_generaciones=300
     prob_mut=50 #porcentaje
 
     valores_y_2=[]
@@ -184,6 +178,7 @@ if __name__ == '__main__':
     mejor_caso_gen = []
     mejor=[]
     peor_caso_gen=[]
+    pmd = []
 
     pob_A = genotipo()
     pob_B = genotipo()
@@ -195,8 +190,8 @@ if __name__ == '__main__':
         cruz = cruza(seleccion)
         muta = mutacion(cruz)
 
-        new_A = muta[0]
-        new_B = muta[1]
+        new_A = muta[0]+muta[1]
+        new_B = muta[2]+muta[3]
 
         A =[]
         B = []
@@ -216,16 +211,16 @@ if __name__ == '__main__':
         pob_A = new_A
         pob_B = new_B
 
+    pmd.sort()
     mejor_caso_gen.sort()
-    mejorFit = mejor_caso_gen[0][0]
+    mejorFit = mejor_caso_gen[0]
     mejorA = mejor_caso_gen[0][1]
     mejorB = mejor_caso_gen[0][2]
     valores_y_2 = mejor_caso_gen[0][3]
-
-
+    
     print("Y ",valores_y_2)
     print("A ",mejorA*.10)
     print("B ",mejorB*.10)
-    print("FIT ",mejorFit)
-    # print("Mejores ",mejor_caso_gen)
+    print("BEST FIT ",pmd[0])
+
     mostrarGrafica()
